@@ -1,0 +1,3 @@
+docx
+python-docx
+shutil
