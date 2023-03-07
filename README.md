@@ -1,5 +1,5 @@
-To do
+**^ To do ^**
 
-##Replacer
-[ ] Header date in portuguese
-[ ] Fix the bold styling
+***Replacer***<br>
+[ ] Header date in portuguese<br>
+[ ] Fix the bold styling<br>
