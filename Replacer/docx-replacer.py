@@ -12,43 +12,55 @@ data_atual = datetime.datetime.now()
 locale.setlocale(locale.LC_ALL, 'pt_PT.utf8')
 nome_mes = calendar.month_name[data_atual.month].upper()
 
-diretorio = "./Modelos-pol"
+diretorio = "./Base-docs"
 
+# Dicionário de substituições
 default_num_cart = "NUM_DOC"
-numero_cart = input("Qual o número do cartório: ")
-default_raz_soc= "CONTROLADOR-CLIENTE"
-raz_soc = input("Digite a razão social do cliente: ")
-default_fantasia = "CONTROLADOR-FANTASIA"
-fantasia = input("Digite o nome-fantasia do cliente (Caso não haja, deixar em branco): ")
-if not fantasia:
-    fantasia = default_fantasia
-
 default_cidade = "CONTROLADOR-MUNICIPIO"
-cidade = input("Digite a cidade: ").upper()
-default_uf = "CONTROLADOR-ESTADO"
-uf = "GO"
+default_comarca = "CONTROLADOR-COMARCA"
+default_raz_soc= "CONTROLADOR-CLIENTE"
 default_email = "CONTROLADOR-EMAIL"
-email = input("Digite o email (Caso não haja, deixar em branco): ").lower()
-if not email:
-    email = default_email
-
+default_uf = "CONTROLADOR-ESTADO"
 default_site = "CONTROLADOR-SITE"
-site = input("Digite o site (Caso não haja, deixar em branco): ").lower()
-if not site:
-    site = "cartorio2oficio.not.br "
-
 data_default = "dd/mm/aaaa"
-data_hoje = data_atual.strftime("%d/%m/%Y")
+data_extenso_default = "DD-DE-MM-DE-AAAA"
 mes_default = "MES/ANO"
+
+# Inputs
+numero_cart = input("Qual o número do cartório: ")
+raz_soc = input("Digite a razão social do cliente: ")
+cidade = input("Digite a cidade ou município: ")
+comarca = input("Digite a cormaca (Caso não haja, deixar em branco): ")
+uf = input("Digite a UF: ").upper()
+email = input("Digite o email (Caso não haja, deixar em branco): ").lower()
+site = input("Digite o site (Caso não haja, deixar em branco): ").lower()
+
+# Data atual
+data_hoje = data_atual.strftime("%d/%m/%Y")
+data_extenso_hoje = data_atual.strftime('%d de %B de %Y')
 mes_hoje = f"{nome_mes}/{str(data_atual.year)[-2:]}"
 
+# Verificação de input em branco
+if not comarca:
+    comarca = cidade
+if not email:
+    email = "cartorio2oficio@email.com"
+if not site:
+    site = "«CLIENTE_DOMINIO_SITE»"
+
+
+# Cria a nova pasta pegando os modelos e adicionando o número do cartório na frente
 diretorio_novo = "./Politicas-Procedimentos_" + numero_cart
 if not os.path.exists(diretorio_novo):
     os.makedirs(diretorio_novo)
 
+# Todo o processo de substituir
 def main():
+
+    # Percorrer todos os arquivos no modelo e copiar no diretório novo
     for arquivo in os.listdir(diretorio):
 
+        # Copia todos os arquivos terminados em .docx para a pasta nova e os percorre
         if arquivo.endswith(".docx"):
             caminho_arquivo = os.path.join(diretorio, arquivo)
 
@@ -59,9 +71,13 @@ def main():
 
             head = doc.sections[0].header
 
-            Dictionary = {default_num_cart : numero_cart, default_raz_soc : raz_soc, default_fantasia : fantasia, default_cidade : cidade, default_uf : uf, default_site : site, default_email : email, data_default : data_hoje, mes_default : mes_hoje}
+            # Dicionário de substituições default : novo
+            Dictionary = {default_num_cart : numero_cart, default_raz_soc : raz_soc, default_cidade : cidade, default_uf : uf, default_site : site, default_email : email, mes_default : mes_hoje, data_extenso_default : data_extenso_hoje, default_comarca : comarca, data_default : data_hoje}
 
+            # Substituição
             for i in Dictionary:
+
+                # Percorre todos os parágrafos normais
                 for p in doc.paragraphs:
                     for run in p.runs:
                         if i in run.text:
@@ -76,19 +92,34 @@ def main():
                                     font.highlight_color = WD_COLOR_INDEX.YELLOW
                                     font.bold = True
                         
+                # Percorre todas as tabelas no corpo
                 for tabela in doc.tables:
                     for linha in tabela.rows:
                         for celula in linha.cells:
                             for i in Dictionary.keys():
-                                if i in celula.text:
-                                    celula.text = celula.text.replace(i, Dictionary[i])
 
+                                # Mudança apenas no dd/mm/aaaa, usa a formatação do estilo "Normal"
+                                if data_default in celula.text:
+                                    celula.text = celula.text.replace(data_default, data_hoje)
+                                
+                                # Mudança com base no dicionário sem perder formatação
+                                for key in Dictionary.keys():
+                                    for paragraph in celula.paragraphs:
+                                        for run in paragraph.runs:
+                                            if key in run.text:
+                                                run.text = run.text.replace(key, Dictionary[key])
+
+                #Percorre todas as tabelas no cabeçalho
                 for tabela in head.tables:
                     for linha in tabela.rows:
                         for celula in linha.cells:
+
+                            # Mudança com base no dicionário sem perder formatação
                             for i in Dictionary.keys():
-                                if i in celula.text:
-                                    celula.text = celula.text.replace(i, Dictionary[i])
+                                for paragraph in celula.paragraphs:
+                                    for run in paragraph.runs:
+                                        if i in run.text:
+                                            run.text = run.text.replace(i, Dictionary[i])
 
             doc.save(caminho_arquivo_novo)
 
