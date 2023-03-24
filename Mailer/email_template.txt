@@ -1,0 +1,6 @@
+[Subject] = Your certificate is here!
+[Body] = Hello!
+
+This is your certificate!
+
+Tysm!
