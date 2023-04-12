@@ -7,13 +7,22 @@ import traceback
 from tkinter import filedialog
 import win32com.client as win32
 
-# USER SELECTION
-print('Select the folder with the certificates')
-pdf_folder_path = filedialog.askdirectory()
+# USER SELECTION - SELECT THE FOLDER WITH THE CERTIFICATES
+while True:
+    pdf_folder_path = filedialog.askdirectory()
+    if os.path.exists(pdf_folder_path):
+        break
+    else:
+        print("The selected folder does not exist. Please enter a valid folder path.")
 print('Path: ', pdf_folder_path)
 
-print('Select the excel file with the info: ')
-excel_file_path = filedialog.askopenfilename()
+# USER SELECTION - SELECT THE EXCEL FILE WITH THE INFO
+while True:
+    excel_file_path = filedialog.askopenfilename()
+    if os.path.exists(excel_file_path):
+        break
+    else:
+        print("The selected file does not exist. Please enter a valid file path.")
 print('Path: ', excel_file_path)
 
 df = pd.read_excel(excel_file_path)
